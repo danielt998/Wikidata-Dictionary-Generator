@@ -44,7 +44,6 @@ public class Main {
     private static boolean AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS = false;
     private static boolean SIMP_REQUIRED = true; //for these two need to consider what to put in other field if empty
     private static boolean TRAD_REQUIRED = true;
-    private static boolean AUTO_DETECT_TRAD_OR_SIMP_FROM_ZH = true;
     private static boolean IGNORE_ENTRIES_WITH_NO_EN_LABEL = true;
     private static boolean IGNORE_ENTRIES_WITH_NO_DESCRIPTION = false;
     private static final OutputFormat OUTPUT_FORMAT = OutputFormat.CEDICT;
@@ -63,7 +62,7 @@ public class Main {
                 if ((TRAD_REQUIRED && getTraditional(segments).isEmpty()) || !containsHan(getTraditional(segments))) {
                     continue;
                 }
-                if ((SIMP_REQUIRED && getSimplified(segments).isEmpty()) || !containsHan(getTraditional(segments))) {
+                if ((SIMP_REQUIRED && getSimplified(segments).isEmpty()) || !containsHan(getSimplified(segments))) {
                     continue;
                 }
                 if (!containsHan(getTraditional(segments)) && !containsHan(getSimplified(segments))) {
@@ -162,7 +161,7 @@ public class Main {
     }
 
     public static String getSimplified(String[] segments) {
-        if (!segments[ZH_HANS].isEmpty()) {
+        if (isSimp(segments[ZH_HANS]) && !segments[ZH_HANS].isEmpty()) {
             return segments[ZH_HANS];
         } else if (isSimp(segments[ZH]) && !segments[ZH].isEmpty()) {
             return segments[ZH];
@@ -183,13 +182,13 @@ public class Main {
         for (char c : tradWord.toCharArray()) {
             if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN) {
                 List<Word> matches = Extract.getWordsFromChinese(c);
-                String firstMatchTrad = matches.getFirst().getTraditionalChinese();
+                String firstMatchSimp = matches.getFirst().getSimplifiedChinese();
                 for (Word word : matches) {
-                    if (!word.getTraditionalChinese().equals(firstMatchTrad)){
+                    if (!word.getSimplifiedChinese().equals(firstMatchSimp)){
                         return "";// TODO: find a better way to fail
                     }
                 }
-                simpBuilder.append(c);
+                simpBuilder.append(firstMatchSimp);
             } else {
                 simpBuilder.append(c);
             }
@@ -202,13 +201,13 @@ public class Main {
         for (char c : simpWord.toCharArray()) {
             if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN) {
                 List<Word> matches = Extract.getWordsFromChinese(c);
-                String firstMatchSimp = matches.getFirst().getSimplifiedChinese();
+                String firstMatchTrad = matches.getFirst().getTraditionalChinese();
                 for (Word word : matches) {
-                    if (!word.getSimplifiedChinese().equals(firstMatchSimp)){
+                    if (!word.getTraditionalChinese().equals(firstMatchTrad)){
                         return "";// TODO: find a better way to fail
                     }
                 }
-                tradBuilder.append(c);
+                tradBuilder.append(firstMatchTrad);
             } else {
                 tradBuilder.append(c);
             }
@@ -242,10 +241,12 @@ public class Main {
         return acc;
     }
 
+    //TODO spotted a possible bug in tis actual data - see星震学, zh-hant loks simplified in our data but trad in wikidata
+
     public static String getTraditional(String[] segments) {
-        if (!segments[ZH_HANT].isEmpty()) {
+        if (isTrad(segments[ZH_HANT]) && !segments[ZH_HANT].isEmpty()) {
             return segments[ZH_HANT];
-        } else if (!segments[ZH_TW].isEmpty()) {
+        } else if (isTrad(segments[ZH_TW]) && !segments[ZH_TW].isEmpty()) {
             return segments[ZH_TW];
         } else if (isTrad(segments[ZH]) && !segments[ZH].isEmpty()) {
             return segments[ZH];
@@ -258,8 +259,6 @@ public class Main {
             return simpToTrad(segments[ZH_HANS]);
         } else if (!segments[ZH_HANS].isEmpty() && AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS) {
             return simpToTrad(segments[ZH_HANS]);
-            //return "";
-            //
         } else {
             return "";
         }
