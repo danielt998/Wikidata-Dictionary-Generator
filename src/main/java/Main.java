@@ -26,6 +26,11 @@ public class Main {
     private static final int ENGLISH = 8;
     private static final int DESCRIPTION = 10;//not sure why 10 and not 9 :P
 
+    private enum OutputFormat {
+        CEDICT,
+        PLECO
+    }
+
     //private static String INPUT_FILE = "/media/dtm/wikidata/wikidata_all_out_2.tsv";
     private static final String INPUT_FILE = "intermediate_data/intermediate_after_excluding_stuff.tsv";
 
@@ -35,13 +40,13 @@ public class Main {
     // TODO: Add a check that the trad is equivalent to the simp for transliteration purposes (also how does this play with different romanisations?)
 
     // TODO: For these, we should also allow transliteration in the case where it is completely unambiguous
-    private static boolean AUTO_CONVERT_TRAD_TO_SIMP = false;
-    private static boolean AUTO_CONVERT_SIMP_TO_TRAD = false;
+    private static boolean AUTO_CONVERT_TRAD_TO_SIMP_WHEN_AMBIGUOUS = false;
+    private static boolean AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS = false;
     private static boolean SIMP_REQUIRED = true; //for these two need to consider what to put in other field if empty
     private static boolean TRAD_REQUIRED = true;
-    private static boolean AUTO_DETECT_TRAD_OR_SIMP_FROM_ZH = true;
     private static boolean IGNORE_ENTRIES_WITH_NO_EN_LABEL = true;
     private static boolean IGNORE_ENTRIES_WITH_NO_DESCRIPTION = false;
+    private static final OutputFormat OUTPUT_FORMAT = OutputFormat.CEDICT;
 
     public static void main(String[] args) {
         Extract.readInDictionary();
@@ -57,7 +62,7 @@ public class Main {
                 if ((TRAD_REQUIRED && getTraditional(segments).isEmpty()) || !containsHan(getTraditional(segments))) {
                     continue;
                 }
-                if ((SIMP_REQUIRED && getSimplified(segments).isEmpty()) || !containsHan(getTraditional(segments))) {
+                if ((SIMP_REQUIRED && getSimplified(segments).isEmpty()) || !containsHan(getSimplified(segments))) {
                     continue;
                 }
                 if (!containsHan(getTraditional(segments)) && !containsHan(getSimplified(segments))) {
@@ -66,9 +71,23 @@ public class Main {
                 if (UNAMBIGUOUS_PINYIN_ONLY && !pinyinIsUnambiguous(getSimplified(segments)) && !pinyinIsUnambiguous(getTraditional(segments))) {
                     continue;
                 }
-                System.out.println(getTraditional(segments) + " " + getSimplified(segments)
-                        + " " + getPinyin(segments)
-                        + " /" + getDescription(segments) + "/");
+                if (IGNORE_ENTRIES_WITH_NO_DESCRIPTION && getNameAndDescription(segments).isEmpty()){
+                    continue;
+                }
+                if (IGNORE_ENTRIES_WITH_NO_EN_LABEL && segments[ENGLISH].isEmpty()) {
+                    continue;
+                }
+
+                if (OUTPUT_FORMAT == OutputFormat.CEDICT) {
+                    System.out.println(getTraditional(segments) + " " + getSimplified(segments)
+                            + " [" + getPinyin(segments) + "]"
+                            + " /" + getNameAndDescription(segments) + "/");
+                } else if (OUTPUT_FORMAT == OutputFormat.PLECO) {
+                    System.out.println(getSimplified(segments) + "["
+                            + getTraditional(segments) + "]\t"
+                            + getPinyin(segments) + "\t"
+                            + getNameAndDescription(segments));
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -138,19 +157,62 @@ public class Main {
                 pinyinSegments.add(nonHanString.toString());
             }
         }
-        return "[" + String.join(" ", pinyinSegments) + "]";
+        return String.join(" ", pinyinSegments);
     }
 
     public static String getSimplified(String[] segments) {
-        if (!segments[ZH_HANS].isEmpty()) {
+        if (isSimp(segments[ZH_HANS]) && !segments[ZH_HANS].isEmpty()) {
             return segments[ZH_HANS];
         } else if (isSimp(segments[ZH]) && !segments[ZH].isEmpty()) {
             return segments[ZH];
-        } else if (!getTraditional(segments).isEmpty() && AUTO_CONVERT_TRAD_TO_SIMP) {
+        } else if (!tradToSimpUnambiguous(segments[ZH]).isEmpty()) {//do we need this if it is covered by below?
+            return tradToSimpUnambiguous(segments[ZH]);
+        }else if (!tradToSimpUnambiguous(getTraditional(segments)).isEmpty()) {
+            return tradToSimpUnambiguous(getTraditional(segments));
+        }
+        else if (!getTraditional(segments).isEmpty() && AUTO_CONVERT_TRAD_TO_SIMP_WHEN_AMBIGUOUS) {
             return tradToSimp(getTraditional(segments));
         } else {
             return "";
         }
+    }
+
+    public static String tradToSimpUnambiguous(String tradWord){
+        StringBuilder simpBuilder = new StringBuilder();
+        for (char c : tradWord.toCharArray()) {
+            if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN) {
+                List<Word> matches = Extract.getWordsFromChinese(c);
+                String firstMatchSimp = matches.getFirst().getSimplifiedChinese();
+                for (Word word : matches) {
+                    if (!word.getSimplifiedChinese().equals(firstMatchSimp)){
+                        return "";// TODO: find a better way to fail
+                    }
+                }
+                simpBuilder.append(firstMatchSimp);
+            } else {
+                simpBuilder.append(c);
+            }
+        }
+        return simpBuilder.toString();
+    }
+
+    public static String simpToTradUnambiguous(String simpWord){
+        StringBuilder tradBuilder = new StringBuilder();
+        for (char c : simpWord.toCharArray()) {
+            if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN) {
+                List<Word> matches = Extract.getWordsFromChinese(c);
+                String firstMatchTrad = matches.getFirst().getTraditionalChinese();
+                for (Word word : matches) {
+                    if (!word.getTraditionalChinese().equals(firstMatchTrad)){
+                        return "";// TODO: find a better way to fail
+                    }
+                }
+                tradBuilder.append(firstMatchTrad);
+            } else {
+                tradBuilder.append(c);
+            }
+        }
+        return tradBuilder.toString();
     }
 
     public static String tradToSimp(String tradWord) {
@@ -179,20 +241,24 @@ public class Main {
         return acc;
     }
 
+    //TODO spotted a possible bug in tis actual data - see星震学, zh-hant loks simplified in our data but trad in wikidata
+
     public static String getTraditional(String[] segments) {
-        if (!segments[ZH_HANT].isEmpty()) {
+        if (isTrad(segments[ZH_HANT]) && !segments[ZH_HANT].isEmpty()) {
             return segments[ZH_HANT];
-        } else if (!segments[ZH_TW].isEmpty()) {
+        } else if (isTrad(segments[ZH_TW]) && !segments[ZH_TW].isEmpty()) {
             return segments[ZH_TW];
         } else if (isTrad(segments[ZH]) && !segments[ZH].isEmpty()) {
             return segments[ZH];
             //.. and so on...
-        } else if (!segments[ZH].isEmpty() && AUTO_CONVERT_SIMP_TO_TRAD) {
+        } else if (isSimp(segments[ZH]) && !simpToTradUnambiguous(segments[ZH]).isEmpty()) {
+            return simpToTradUnambiguous(segments[ZH]);
+        } else if (!simpToTradUnambiguous(segments[ZH_HANS]).isEmpty()) {
+            return simpToTradUnambiguous(segments[ZH_HANS]);
+        } else if (!segments[ZH].isEmpty() && AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS) {
             return simpToTrad(segments[ZH_HANS]);
-        } else if (!segments[ZH_HANS].isEmpty() && AUTO_CONVERT_SIMP_TO_TRAD) {
+        } else if (!segments[ZH_HANS].isEmpty() && AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS) {
             return simpToTrad(segments[ZH_HANS]);
-            //return "";
-            //
         } else {
             return "";
         }
@@ -220,7 +286,7 @@ public class Main {
         return true;
     }
 
-    public static String getDescription(String[] segments) {
-        return segments[ENGLISH] + ", " + (segments.length > 9 ? segments[DESCRIPTION] : "");
+    public static String getNameAndDescription(String[] segments) {
+        return segments[ENGLISH] + (segments.length > 9 && !segments[DESCRIPTION].isEmpty() ? ", " + segments[DESCRIPTION] : "");
     }
 }
