@@ -1,5 +1,5 @@
 # CC-CEDICT-additions
-Generate some dictionary entries for CC-CEDICT and Pleco using a json wikidata dump. See /output for the generated output files. Note that old_output.txt has more entries but it was generated before I modified the code not to output anything with ambiguoug pinyin and only to auto-convert between traditional/simplified if cases that are unambiguous (that functionality is still available by modifying some of the constants in Main.java)
+Generate some dictionary entries for CC-CEDICT and Pleco using a json wikidata dump. See /output for the generated output files. Note that old_output.txt has more entries but it was generated before I modified the code not to output anything with ambiguous pinyin and only to auto-convert between traditional/simplified if cases that are unambiguous (the original functionality is still available by modifying some of the constants in Main.java)
 
 There is a two stage process for doing this as parsing the json dump takes ages and I wanted to be able to develop more quickly. The `pre-process.py` Python script in `pre-processing` will do generate the intermediate .tsv file in `intermediate_data` which is used by the Java applicaiton. There is also a script to exclude certain types of Wikidata item but I didn't get too far with this as there are too many types of item that I'd like to exclude.
 
