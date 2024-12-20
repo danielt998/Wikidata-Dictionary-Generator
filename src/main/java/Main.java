@@ -151,7 +151,7 @@ public class Main {
                 pinyinSegments.add(Extract.getWordFromChinese(chars[i]).getPinyinWithTones());
             } else {
                 StringBuilder nonHanString = new StringBuilder("" + chars[i]);
-                while (Character.UnicodeScript.of(chars[i + 1]) != Character.UnicodeScript.HAN) {
+                while (i + 1 < chars.length && Character.UnicodeScript.of(chars[i + 1]) != Character.UnicodeScript.HAN) {
                     nonHanString.append(chars[++i]);
                 }
                 pinyinSegments.add(nonHanString.toString());
@@ -286,7 +286,8 @@ public class Main {
         return true;
     }
 
+    // TODO: not sure description hasn't stopped working
     public static String getNameAndDescription(String[] segments) {
-        return segments[ENGLISH] + (segments.length > 9 && !segments[DESCRIPTION].isEmpty() ? ", " + segments[DESCRIPTION] : "");
+        return segments[ENGLISH] + ((segments.length > 9 && !segments[DESCRIPTION].isEmpty()) ? ", " + segments[DESCRIPTION] : "");
     }
 }
