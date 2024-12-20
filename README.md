@@ -12,7 +12,7 @@ ideas for other translation sources:
   there must be some lists of place name translations, e.g. where does Facebook get these from?
   
   extract from wikipedia? There may be some that have translations here but not in Wikidata, some
-    html parsing/regex would be required here and could get ugly (look into zh template, esspecially as they often have pinyin too)
+    html parsing/regex would be required here and could get ugly (look into zh template, especially as they often have pinyin too)
   
 
 also, would be nice to do some analytics, i.e. find the total number of instances of each type and sort these by frequency
