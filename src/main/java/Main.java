@@ -200,6 +200,10 @@ public class Main {
         for (char c : tradWord.toCharArray()) {
             if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN) {
                 List<Word> matches = Extract.getWordsFromChinese(c);
+                if (matches.isEmpty()) {
+                    System.err.println("ERROR: no match found for char " + c);
+                    return "";
+                }
                 String firstMatchSimp = matches.getFirst().getSimplifiedChinese();
                 for (Word word : matches) {
                     if (!word.getSimplifiedChinese().equals(firstMatchSimp)){
@@ -219,6 +223,10 @@ public class Main {
         for (char c : simpWord.toCharArray()) {
             if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN) {
                 List<Word> matches = Extract.getWordsFromChinese(c);
+                if (matches.isEmpty()) {
+                    System.err.println("ERROR: no match found for char " + c);
+                    return "";
+                }
                 String firstMatchTrad = matches.getFirst().getTraditionalChinese();
                 for (Word word : matches) {
                     if (!word.getTraditionalChinese().equals(firstMatchTrad)){
