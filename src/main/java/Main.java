@@ -41,43 +41,37 @@ public class Main {
     private static boolean TRAD_REQUIRED = true;
     private static boolean IGNORE_ENTRIES_WITH_NO_EN_LABEL = true;
     private static boolean IGNORE_ENTRIES_WITH_NO_DESCRIPTION = false;
-    private static final OutputFormat OUTPUT_FORMAT = OutputFormat.PLECO;
+    private static final OutputFormat DEFAULT_OUTPUT_FORMAT = OutputFormat.CEDICT;
 
     public static void main(String[] args) {
+        OutputFormat outputFormat = DEFAULT_OUTPUT_FORMAT;
+        for (int argIndex = 0; argIndex < args.length; argIndex++) {
+            switch (args[argIndex]) {
+                case "-f", "--format" -> {
+                    String format = args[++argIndex].toLowerCase();
+                    outputFormat = switch (format) {
+                        case "pleco" -> OutputFormat.PLECO;
+                        case "cedict" -> OutputFormat.CEDICT;
+                        default -> throw new IllegalArgumentException("Unrecognised output format: " + format);
+                    };
+                }
+            }
+        }
+
         Extract.readInDictionary();
         List<String> lines = FileUtils.fileToStringArray(INPUT_FILE);
         for (String line : lines) {
             String[] segments = line.split("\t");
-            if (segments.length > 10 && (segments[ENGLISH].isEmpty() && segments[DESCRIPTION].isEmpty())) {
-                continue;
-            }
 
-            if (empty(segments)) continue;
             try {
-                if ((TRAD_REQUIRED && getTraditional(segments).isEmpty()) || !containsHan(getTraditional(segments))) {
+                if (ignoreRow(segments)) {
                     continue;
                 }
-                if ((SIMP_REQUIRED && getSimplified(segments).isEmpty()) || !containsHan(getSimplified(segments))) {
-                    continue;
-                }
-                if (!containsHan(getTraditional(segments)) && !containsHan(getSimplified(segments))) {
-                    continue;
-                }
-                if (UNAMBIGUOUS_PINYIN_ONLY && !pinyinIsUnambiguous(getSimplified(segments)) && !pinyinIsUnambiguous(getTraditional(segments))) {
-                    continue;
-                }
-                if (IGNORE_ENTRIES_WITH_NO_DESCRIPTION && getNameAndDescription(segments).isEmpty()){
-                    continue;
-                }
-                if (IGNORE_ENTRIES_WITH_NO_EN_LABEL && segments[ENGLISH].isEmpty()) {
-                    continue;
-                }
-
-                if (OUTPUT_FORMAT == OutputFormat.CEDICT) {
+                if (outputFormat == OutputFormat.CEDICT) {
                     System.out.println(getTraditional(segments) + " " + getSimplified(segments)
                             + " [" + getPinyin(segments) + "]"
                             + " /" + getNameAndDescription(segments) + "/");
-                } else if (OUTPUT_FORMAT == OutputFormat.PLECO) {
+                } else if (outputFormat == OutputFormat.PLECO) {
                     System.out.println(getSimplified(segments) + "["
                             + getTraditional(segments) + "]\t"
                             + getPinyin(segments) + "\t"
@@ -87,6 +81,35 @@ public class Main {
                 e.printStackTrace();
             }
         }
+    }
+
+    public static boolean ignoreRow(String[] segments) {
+        if (empty(segments)) {
+            return true;
+        }
+        if (segments.length > 10 && (segments[ENGLISH].isEmpty() && segments[DESCRIPTION].isEmpty())) {
+            return true;
+        }
+        if ((TRAD_REQUIRED && getTraditional(segments).isEmpty()) || !containsHan(getTraditional(segments))) {
+            return true;
+        }
+        if ((SIMP_REQUIRED && getSimplified(segments).isEmpty()) || !containsHan(getSimplified(segments))) {
+            return true;
+        }
+        if (!containsHan(getTraditional(segments)) && !containsHan(getSimplified(segments))) {
+            return true;
+        }
+        if (UNAMBIGUOUS_PINYIN_ONLY && !pinyinIsUnambiguous(getSimplified(segments)) && !pinyinIsUnambiguous(getTraditional(segments))) {
+            return true;
+        }
+        if (IGNORE_ENTRIES_WITH_NO_DESCRIPTION && getNameAndDescription(segments).isEmpty()){
+            return true;
+        }
+        if (IGNORE_ENTRIES_WITH_NO_EN_LABEL && segments[ENGLISH].isEmpty()) {
+            return true;
+        }
+
+        return false;
     }
 
     public static boolean containsHan(String name) {
