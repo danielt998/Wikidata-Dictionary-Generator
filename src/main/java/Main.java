@@ -31,29 +31,24 @@ public class Main {
         PLECO
     }
 
-    //private static String INPUT_FILE = "/media/dtm/wikidata/wikidata_all_out_2.tsv";
     private static final String INPUT_FILE = "intermediate_data/intermediate_after_excluding_stuff.tsv";
 
-
     private static boolean UNAMBIGUOUS_PINYIN_ONLY = true;
-
     // TODO: Add a check that the trad is equivalent to the simp for transliteration purposes (also how does this play with different romanisations?)
-
-    // TODO: For these, we should also allow transliteration in the case where it is completely unambiguous
     private static boolean AUTO_CONVERT_TRAD_TO_SIMP_WHEN_AMBIGUOUS = false;
     private static boolean AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS = false;
     private static boolean SIMP_REQUIRED = true; //for these two need to consider what to put in other field if empty
     private static boolean TRAD_REQUIRED = true;
     private static boolean IGNORE_ENTRIES_WITH_NO_EN_LABEL = true;
     private static boolean IGNORE_ENTRIES_WITH_NO_DESCRIPTION = false;
-    private static final OutputFormat OUTPUT_FORMAT = OutputFormat.CEDICT;
+    private static final OutputFormat OUTPUT_FORMAT = OutputFormat.PLECO;
 
     public static void main(String[] args) {
         Extract.readInDictionary();
         List<String> lines = FileUtils.fileToStringArray(INPUT_FILE);
         for (String line : lines) {
             String[] segments = line.split("\t");
-            if (segments.length > 10 && !segments[ENGLISH].isEmpty() && !segments[DESCRIPTION].isEmpty()) {
+            if (segments.length > 10 && (segments[ENGLISH].isEmpty() && segments[DESCRIPTION].isEmpty())) {
                 continue;
             }
 
