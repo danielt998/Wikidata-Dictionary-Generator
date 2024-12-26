@@ -73,7 +73,7 @@ public class Main {
         }
     }
 
-    public static boolean ignoreRow(String[] segments) {
+    private static boolean ignoreRow(String[] segments) {
         if (empty(segments)) {
             return true;
         }
@@ -107,7 +107,7 @@ public class Main {
         return segments[ZH].isEmpty() && segments[ZH_HANS].isEmpty() && segments[ZH_TW].isEmpty();
     }
 
-    public static String getPinyin(String[] segments) {
+    private static String getPinyin(String[] segments) {
         //TODO:have some sort of priority order of different Chineses
         String simplifiedPinyin = HanUtils.getPinyin(getSimplified(segments));
         String traditionalPinyin = HanUtils.getPinyin(getTraditional(segments));
@@ -120,7 +120,7 @@ public class Main {
         }
     }
 
-    public static String getSimplified(String[] segments) {
+    private static String getSimplified(String[] segments) {
         if (HanUtils.isSimp(segments[ZH_HANS]) && !segments[ZH_HANS].isEmpty()) {
             return segments[ZH_HANS];
         } else if (HanUtils.isSimp(segments[ZH]) && !segments[ZH].isEmpty()) {
@@ -139,7 +139,7 @@ public class Main {
 
     //TODO spotted a possible bug in tis actual data - see星震学, zh-hant looks simplified in our data but trad in wikidata
 
-    public static String getTraditional(String[] segments) {
+    private static String getTraditional(String[] segments) {
         if (HanUtils.isTrad(segments[ZH_HANT]) && !segments[ZH_HANT].isEmpty()) {
             return segments[ZH_HANT];
         } else if (HanUtils.isTrad(segments[ZH_TW]) && !segments[ZH_TW].isEmpty()) {
@@ -160,7 +160,7 @@ public class Main {
         }
     }
 
-    public static String getNameAndDescription(String[] segments) {
+    private static String getNameAndDescription(String[] segments) {
         return segments[ENGLISH] + ((segments.length > 9 && !segments[DESCRIPTION].isEmpty()) ? ", " + segments[DESCRIPTION] : "");
     }
 }
