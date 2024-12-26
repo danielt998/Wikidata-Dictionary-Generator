@@ -121,15 +121,16 @@ public class Main {
         for (char c : name.toCharArray()) {
             if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN) {
                 // TODO: think about how to handle this
-//                if (Extract.getWordsFromChinese(c).isEmpty()) {
-//                    throw new Exception("getWordsFromChinese returned empty list in pinyinIsUnambiguous");
-//                }
                 String firstPinyin = Extract.getWordsFromChinese(c).getFirst().getPinyinWithTones().toLowerCase();
-                for (Word character : Extract.getWordsFromChinese(c)) {
-                    if (!character.getPinyinWithTones().toLowerCase().equals(firstPinyin)) {
-                        return false;
-                    }
+                if (Extract.getWordsFromChinese(c).stream()
+                        .anyMatch(character -> !character.getPinyinWithTones().toLowerCase().equals(firstPinyin))) {
+                    return false;
                 }
+//                for (Word character : Extract.getWordsFromChinese(c)) {
+//                    if (!character.getPinyinWithTones().toLowerCase().equals(firstPinyin)) {
+//                        return false;
+//                    }
+//                }
             }
         }
         return true;
