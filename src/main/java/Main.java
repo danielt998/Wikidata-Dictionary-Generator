@@ -120,17 +120,11 @@ public class Main {
     public static boolean pinyinIsUnambiguous(String name){
         for (char c : name.toCharArray()) {
             if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN) {
-                // TODO: think about how to handle this
                 String firstPinyin = Extract.getWordsFromChinese(c).getFirst().getPinyinWithTones().toLowerCase();
                 if (Extract.getWordsFromChinese(c).stream()
                         .anyMatch(character -> !character.getPinyinWithTones().toLowerCase().equals(firstPinyin))) {
                     return false;
                 }
-//                for (Word character : Extract.getWordsFromChinese(c)) {
-//                    if (!character.getPinyinWithTones().toLowerCase().equals(firstPinyin)) {
-//                        return false;
-//                    }
-//                }
             }
         }
         return true;
@@ -290,13 +284,13 @@ public class Main {
 
     // TODO: move elsewhere?
     public static boolean isSimp(String name) {
-        return Utils.charArrayToCharacterList(name.toCharArray()).stream().anyMatch(c ->
+        return Utils.charArrayToCharacterList(name.toCharArray()).stream().noneMatch(c ->
                 Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN &&
                         Extract.getWordFromSimplifiedChinese(c) == null);
     }
 
     public static boolean isTrad(String name) {
-        return Utils.charArrayToCharacterList(name.toCharArray()).stream().anyMatch(c ->
+        return Utils.charArrayToCharacterList(name.toCharArray()).stream().noneMatch(c ->
                         Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN &&
                     Extract.getWordFromTraditionalChinese(c) == null);
     }
