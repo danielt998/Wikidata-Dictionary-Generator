@@ -90,11 +90,11 @@ public class HanUtils {
         return tradBuilder.toString();
     }
 
+    //TODO: Refactor to look more like tradToSimpUnambiguous and pass through chars that aren't hanzi
     public static String tradToSimp(String tradWord) {
         List<Word> words = new ArrayList<Word>();
         StringBuilder acc = new StringBuilder();
         for (char c : tradWord.toCharArray()) {
-            //TODO: add anything that isn't HAN straight to acc?
             words.add(Extract.getWordFromChinese(c));
         }
         for (Word word : words) {
@@ -103,6 +103,7 @@ public class HanUtils {
         return acc.toString();
     }
 
+    //TODO: Refactor to look more like tradToSimpUnambiguous and pass through chars that aren't hanzi
     public static String simpToTrad(String simpWord) {
         List<Word> words = new ArrayList<Word>();
         StringBuilder acc = new StringBuilder();
