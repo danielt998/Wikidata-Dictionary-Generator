@@ -16,6 +16,10 @@ public class Main {
     private static final int ENGLISH = 8;
     private static final int DESCRIPTION = 10;//not sure why 10 and not 9 :P
 
+    // Note that these are in precedence order
+    private static final int[] SIMPLIFIED_FIELDS = new int[] { ZH_HANS, ZH_MY, ZH_SG };
+    private static final int[] TRADITIONAL_FIELDS = new int[] { ZH_HANT, ZH_TW, ZH_HK, ZH_MO };
+
     private enum OutputFormat {
         CEDICT,
         PLECO
@@ -121,13 +125,19 @@ public class Main {
     }
 
     private static String getSimplified(String[] segments) {
-        if (HanUtils.isSimp(segments[ZH_HANS]) && !segments[ZH_HANS].isEmpty()) {
-            return segments[ZH_HANS];
-        } else if (HanUtils.isSimp(segments[ZH]) && !segments[ZH].isEmpty()) {
+        for (int i : SIMPLIFIED_FIELDS) {
+            if (HanUtils.isSimp(segments[i]) && !segments[i].isEmpty()) {
+                return segments[i];
+            }
+        }
+
+        // The problem with the 'zh' label is that it can be either simplified or traditional so we have to figure out
+        // which it is if possible
+        if (HanUtils.isSimp(segments[ZH]) && !segments[ZH].isEmpty()) {
             return segments[ZH];
         } else if (!HanUtils.tradToSimpUnambiguous(segments[ZH]).isEmpty()) {//do we need this if it is covered by below?
             return HanUtils.tradToSimpUnambiguous(segments[ZH]);
-        }else if (!HanUtils.tradToSimpUnambiguous(getTraditional(segments)).isEmpty()) {
+        } else if (!HanUtils.tradToSimpUnambiguous(getTraditional(segments)).isEmpty()) {
             return HanUtils.tradToSimpUnambiguous(getTraditional(segments));
         }
         else if (!getTraditional(segments).isEmpty() && AUTO_CONVERT_TRAD_TO_SIMP_WHEN_AMBIGUOUS) {
@@ -140,24 +150,37 @@ public class Main {
     //TODO spotted a possible bug in tis actual data - see星震学, zh-hant looks simplified in our data but trad in wikidata
 
     private static String getTraditional(String[] segments) {
-        if (HanUtils.isTrad(segments[ZH_HANT]) && !segments[ZH_HANT].isEmpty()) {
-            return segments[ZH_HANT];
-        } else if (HanUtils.isTrad(segments[ZH_TW]) && !segments[ZH_TW].isEmpty()) {
-            return segments[ZH_TW];
-        } else if (HanUtils.isTrad(segments[ZH]) && !segments[ZH].isEmpty()) {
+        for (int i : TRADITIONAL_FIELDS) {
+            if (HanUtils.isTrad(segments[i]) && !segments[i].isEmpty()) {
+                return segments[i];
+            }
+        }
+
+        // The problem with the 'zh' label is that it can be either simplified or traditional so we have to figure out
+        // which it is if possible
+        if (HanUtils.isTrad(segments[ZH]) && !segments[ZH].isEmpty()) {
             return segments[ZH];
-            //.. and so on...
         } else if (HanUtils.isSimp(segments[ZH]) && !HanUtils.simpToTradUnambiguous(segments[ZH]).isEmpty()) {
             return HanUtils.simpToTradUnambiguous(segments[ZH]);
-        } else if (!HanUtils.simpToTradUnambiguous(segments[ZH_HANS]).isEmpty()) {
-            return HanUtils.simpToTradUnambiguous(segments[ZH_HANS]);
-        } else if (!segments[ZH].isEmpty() && AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS) {
-            return HanUtils.simpToTrad(segments[ZH_HANS]);
-        } else if (!segments[ZH_HANS].isEmpty() && AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS) {
-            return HanUtils.simpToTrad(segments[ZH_HANS]);
-        } else {
-            return "";
         }
+
+        for (int i : SIMPLIFIED_FIELDS) {
+            if (!HanUtils.simpToTradUnambiguous(segments[i]).isEmpty()) {
+                return HanUtils.simpToTradUnambiguous(segments[i]);
+            }
+        }
+
+        if (AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS) {
+            if (!segments[ZH].isEmpty()) {
+                return HanUtils.simpToTrad(segments[ZH]);
+            }
+            for (int i : SIMPLIFIED_FIELDS) {
+                if (!segments[i].isEmpty()) {
+                    return HanUtils.simpToTrad(segments[i]);
+                }
+            }
+        }
+        return "";
     }
 
     private static String getNameAndDescription(String[] segments) {
