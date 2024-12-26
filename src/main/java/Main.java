@@ -1,8 +1,26 @@
 package src.main.java;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class Main {
+    private enum OutputFormat {
+        CEDICT,
+        PLECO
+    }
+
+    private static final boolean INCLUDE_HK_AND_MO = false;
+    private static boolean UNAMBIGUOUS_PINYIN_ONLY = true;
+    // TODO: Add a check that the trad is equivalent to the simp for transliteration purposes (also how does this play with different romanisations?)
+    // also that means multiple combinations to check etc..
+    private static boolean AUTO_CONVERT_TRAD_TO_SIMP_WHEN_AMBIGUOUS = false;
+    private static boolean AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS = false;
+    private static boolean SIMP_REQUIRED = true; //for these two need to consider what to put in other field if empty
+    private static boolean TRAD_REQUIRED = true;
+    private static boolean IGNORE_ENTRIES_WITH_NO_EN_LABEL = true;
+    private static boolean IGNORE_ENTRIES_WITH_NO_NAME_OR_DESCRIPTION = false;
+    private static final OutputFormat DEFAULT_OUTPUT_FORMAT = OutputFormat.CEDICT;
+
     // these represent the indices in the tsv of the intermediate file
     // TODO: Add zh-CN and others
     private static final int ZH = 0;
@@ -18,25 +36,14 @@ public class Main {
 
     // Note that these are in precedence order
     private static final int[] SIMPLIFIED_FIELDS = new int[] { ZH_HANS, ZH_MY, ZH_SG };
-    private static final int[] TRADITIONAL_FIELDS = new int[] { ZH_HANT, ZH_TW, ZH_HK, ZH_MO };
-
-    private enum OutputFormat {
-        CEDICT,
-        PLECO
-    }
+    // I am on the fence as to whether we want to include HK and MO here as they may differ from the Mandarin
+    //it seems to roughly double the output size if we do though
+    private static final int[] TRADITIONAL_FIELDS =
+            INCLUDE_HK_AND_MO?
+                    new int[] { ZH_HANT, ZH_TW, ZH_HK, ZH_MO }:
+                    new int[] { ZH_HANT, ZH_TW };
 
     private static final String INPUT_FILE = "intermediate_data/intermediate_after_excluding_stuff.tsv";
-
-    private static boolean UNAMBIGUOUS_PINYIN_ONLY = true;
-    // TODO: Add a check that the trad is equivalent to the simp for transliteration purposes (also how does this play with different romanisations?)
-    // also that means multiple combinations to check etc..
-    private static boolean AUTO_CONVERT_TRAD_TO_SIMP_WHEN_AMBIGUOUS = false;
-    private static boolean AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS = false;
-    private static boolean SIMP_REQUIRED = true; //for these two need to consider what to put in other field if empty
-    private static boolean TRAD_REQUIRED = true;
-    private static boolean IGNORE_ENTRIES_WITH_NO_EN_LABEL = true;
-    private static boolean IGNORE_ENTRIES_WITH_NO_NAME_OR_DESCRIPTION = false;
-    private static final OutputFormat DEFAULT_OUTPUT_FORMAT = OutputFormat.CEDICT;
 
     public static void main(String[] args) {
         OutputFormat outputFormat = DEFAULT_OUTPUT_FORMAT;
@@ -108,7 +115,9 @@ public class Main {
     }
 
     private static boolean empty(String[] segments) {
-        return segments[ZH].isEmpty() && segments[ZH_HANS].isEmpty() && segments[ZH_TW].isEmpty();
+        return Arrays.stream(SIMPLIFIED_FIELDS).allMatch(i -> segments[i].isEmpty())
+                && Arrays.stream(TRADITIONAL_FIELDS).allMatch(i -> segments[i].isEmpty())
+                && segments[ZH].isEmpty();
     }
 
     private static String getPinyin(String[] segments) {
