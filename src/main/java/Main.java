@@ -3,15 +3,6 @@ package src.main.java;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
-options:
-include/exclude cases where pinyin is ambiguouss
-only run if both simp + trad exist (whether we autodetect if zh is ttrad/simp or autoconvert iin cases where it is
- unambiguous to do so remains to be decided
-if this ^^ we may only want to do it if the simp/trad are equivalent characters
-
- */
-
 public class Main {
     // these represent the indices in the tsv of the intermediate file
     // TODO: did we forget zh-CN??
