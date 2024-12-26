@@ -112,7 +112,6 @@ public class Main {
     }
 
     private static String getPinyin(String[] segments) {
-        //TODO:have some sort of priority order of different Chineses
         String simplifiedPinyin = HanUtils.getPinyin(getSimplified(segments));
         String traditionalPinyin = HanUtils.getPinyin(getTraditional(segments));
         if (!simplifiedPinyin.isEmpty()) {
