@@ -4,7 +4,7 @@ import java.util.List;
 
 public class Main {
     // these represent the indices in the tsv of the intermediate file
-    // TODO: did we forget zh-CN??
+    // TODO: Add zh-CN and others
     private static final int ZH = 0;
     private static final int ZH_HANS = 1;
     private static final int ZH_HANT = 2;
@@ -14,7 +14,7 @@ public class Main {
     private static final int ZH_SG = 6;
     private static final int ZH_TW = 7;
     private static final int ENGLISH = 8;
-    private static final int DESCRIPTION = 10;//not sure why 10 and not 9 :P
+    private static final int DESCRIPTION = 10;// We seem to have two tabs between the last field and this
 
     // Note that these are in precedence order
     private static final int[] SIMPLIFIED_FIELDS = new int[] { ZH_HANS, ZH_MY, ZH_SG };
@@ -29,7 +29,7 @@ public class Main {
 
     private static boolean UNAMBIGUOUS_PINYIN_ONLY = true;
     // TODO: Add a check that the trad is equivalent to the simp for transliteration purposes (also how does this play with different romanisations?)
-    //also that means multiple combinations to check etc..
+    // also that means multiple combinations to check etc..
     private static boolean AUTO_CONVERT_TRAD_TO_SIMP_WHEN_AMBIGUOUS = false;
     private static boolean AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS = false;
     private static boolean SIMP_REQUIRED = true; //for these two need to consider what to put in other field if empty
@@ -56,7 +56,7 @@ public class Main {
         Extract.readInDictionary();
         List<String> lines = FileUtils.fileToStringArray(INPUT_FILE);
         for (String line : lines) {
-            String[] segments = line.split("\t");
+            String[] segments = line.split("\t", -1);
 
             try {
                 if (ignoreRow(segments)) {
@@ -82,7 +82,7 @@ public class Main {
         if (empty(segments)) {
             return true;
         }
-        if (segments.length > 10 && (segments[ENGLISH].isEmpty() && segments[DESCRIPTION].isEmpty())) {
+        if (segments[ENGLISH].isEmpty() && segments[DESCRIPTION].isEmpty()) {
             return true;
         }
         if ((TRAD_REQUIRED && getTraditional(segments).isEmpty()) || !HanUtils.containsHan(getTraditional(segments))) {
@@ -108,7 +108,6 @@ public class Main {
     }
 
     private static boolean empty(String[] segments) {
-        if (segments.length <= ZH_TW) return true;// need to investigate though...
         return segments[ZH].isEmpty() && segments[ZH_HANS].isEmpty() && segments[ZH_TW].isEmpty();
     }
 
@@ -189,6 +188,6 @@ public class Main {
     }
 
     private static String getNameAndDescription(String[] segments) {
-        return segments[ENGLISH] + ((segments.length > 9 && !segments[DESCRIPTION].isEmpty()) ? ", " + segments[DESCRIPTION] : "");
+        return segments[ENGLISH] + (!segments[DESCRIPTION].isEmpty() ? ", " + segments[DESCRIPTION] : "");
     }
 }
