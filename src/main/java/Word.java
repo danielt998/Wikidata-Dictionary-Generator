@@ -13,7 +13,6 @@ public class Word {
     }
 
     private String trad, simp, pinyin, pinTones, def;
-    private final int LARGE_PRIME_NUMBER = 65729;
 
     public String getTraditionalChinese() {
         return trad;
@@ -62,17 +61,6 @@ public class Word {
     //this allows us to run the sort command to sort the data ;)
     public String getSpecialOutput() {
         return pinyin + ' ' + trad + ' ' + simp + ' ' + '[' + pinTones + ']' + ' ' + '/' + def;
-    }
-
-    //not sure this makes any difference
-    @Override
-    public int hashCode() {
-  /*  int hash=7;
-    for (int i=0;i<simp.length();i++){
-      hash=hash*LARGE_PRIME_NUMBER + ((int)simp.charAt(i));
-    }
-    return hash;*/
-        return simp.hashCode();
     }
 }
 
