@@ -136,14 +136,21 @@ public class Main {
             return segments[ZH];
         } else if (!HanUtils.tradToSimpUnambiguous(segments[ZH]).isEmpty()) {//do we need this if it is covered by below?
             return HanUtils.tradToSimpUnambiguous(segments[ZH]);
-        } else if (!HanUtils.tradToSimpUnambiguous(getTraditional(segments)).isEmpty()) {
-            return HanUtils.tradToSimpUnambiguous(getTraditional(segments));
         }
-        else if (!getTraditional(segments).isEmpty() && AUTO_CONVERT_TRAD_TO_SIMP_WHEN_AMBIGUOUS) {
-            return HanUtils.tradToSimp(getTraditional(segments));
-        } else {
-            return "";
+        for (int i : TRADITIONAL_FIELDS) {
+            if (!HanUtils.tradToSimpUnambiguous(segments[i]).isEmpty()) {
+                return HanUtils.tradToSimpUnambiguous(segments[i]);
+            }
         }
+
+        if (AUTO_CONVERT_TRAD_TO_SIMP_WHEN_AMBIGUOUS) {
+            for (int i : TRADITIONAL_FIELDS) {
+                if (!segments[i].isEmpty() && !HanUtils.tradToSimp(segments[i]).isEmpty()) {
+                    return HanUtils.tradToSimp(segments[i]);
+                }
+            }
+        }
+        return "";
     }
 
     //TODO spotted a possible bug in tis actual data - see星震学, zh-hant looks simplified in our data but trad in wikidata
@@ -170,11 +177,11 @@ public class Main {
         }
 
         if (AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS) {
-            if (!segments[ZH].isEmpty()) {
+            if (!segments[ZH].isEmpty() && !HanUtils.simpToTrad(segments[ZH]).isEmpty()) {
                 return HanUtils.simpToTrad(segments[ZH]);
             }
             for (int i : SIMPLIFIED_FIELDS) {
-                if (!segments[i].isEmpty()) {
+                if (!segments[i].isEmpty() && !HanUtils.simpToTrad(segments[i]).isEmpty()) {
                     return HanUtils.simpToTrad(segments[i]);
                 }
             }
