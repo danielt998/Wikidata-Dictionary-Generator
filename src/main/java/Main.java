@@ -153,8 +153,6 @@ public class Main {
         return "";
     }
 
-    //TODO spotted a possible bug in tis actual data - see星震学, zh-hant looks simplified in our data but trad in wikidata
-
     private static String getTraditional(String[] segments) {
         for (int i : TRADITIONAL_FIELDS) {
             if (HanUtils.isTrad(segments[i]) && !segments[i].isEmpty()) {
