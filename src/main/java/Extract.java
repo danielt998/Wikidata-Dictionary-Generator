@@ -8,26 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/*Notes:
-  This is a mess of a piece of code that I pulled from another of my projects, it needs sorting out
-  Also, it has some useful methods that are of no use for this particular project, so it might be nice
-  to create a separate linked GitHub project or something for it later
-  Another note:for now, it will only handle unique characters, not words composed of chars, making it
-  somewhat less useful than it could be
-*/
-/*TODO:
-  tidy up formatting (e.g. trailing \)
-  ensure that split(" /") does not miss anything
-  give some thought to how we can implement search for characters/English too...
-     maybe create some sort of hashmap
-  search should not require exact matches, if whole provided string is a substring of pinyin
-  should be something like:
-    if it's a (partial) match:
-      traverse the list both backwards and forwards as far as possible and add all the matches
-  (starting at same place), this should be a match too.
-  also,** multiple words have same pinyin** - for themoment, this will return only the first result
-  Capitals are causing issues too...
-*/
 public class Extract {
     private static final String DEFAULT_DICTIONARY_FILENAME = "resources/cedict_ts.u8";
     private static final char COMMENT_CHARACTER = '#';
@@ -133,27 +113,4 @@ public class Extract {
         }
         return simplifiedMapping.get(chineseWord).getFirst();
     }
-
-/*TODO:resurrect
-  //LINEAR COMPLEXITY
-  public static String getEnglish(String chineseWord){
-    for (src.main.java.Word word : dictionary){
-      if(word.getSimplifiedChinese().equals(chineseWord)
-                      || word.getTraditionalChinese().equals(chineseWord)){
-        return word.getDefinition();
-      }
-    }
-    return "Chinese word not found";
-  }
-  public static String getPinyinWithTones(String chineseWord){
-    for (src.main.java.Word word : dictionary){
-      if(word.getSimplifiedChinese().equals(chineseWord)
-                      || word.getTraditionalChinese().equals(chineseWord)){
-        return word.getPinyinWithTones();
-      }
-    }
-    return "Chinese word not found";
-  }
-  */
-
 }
