@@ -35,7 +35,7 @@ public class Main {
     private static boolean SIMP_REQUIRED = true; //for these two need to consider what to put in other field if empty
     private static boolean TRAD_REQUIRED = true;
     private static boolean IGNORE_ENTRIES_WITH_NO_EN_LABEL = true;
-    private static boolean IGNORE_ENTRIES_WITH_NO_DESCRIPTION = false;
+    private static boolean IGNORE_ENTRIES_WITH_NO_NAME_OR_DESCRIPTION = false;
     private static final OutputFormat DEFAULT_OUTPUT_FORMAT = OutputFormat.CEDICT;
 
     public static void main(String[] args) {
@@ -97,7 +97,7 @@ public class Main {
         if (UNAMBIGUOUS_PINYIN_ONLY && !HanUtils.pinyinIsUnambiguous(getSimplified(segments)) && !HanUtils.pinyinIsUnambiguous(getTraditional(segments))) {
             return true;
         }
-        if (IGNORE_ENTRIES_WITH_NO_DESCRIPTION && getNameAndDescription(segments).isEmpty()){
+        if (IGNORE_ENTRIES_WITH_NO_NAME_OR_DESCRIPTION && getNameAndDescription(segments).isEmpty()){
             return true;
         }
         if (IGNORE_ENTRIES_WITH_NO_EN_LABEL && segments[ENGLISH].isEmpty()) {
