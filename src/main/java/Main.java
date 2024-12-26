@@ -113,12 +113,8 @@ public class Main {
     }
 
     public static boolean containsHan(String name) {
-        for (char c : name.toCharArray()) {
-            if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN) {
-                return true;
-            }
-        }
-        return false;
+        return Utils.charArrayToCharacterList(name.toCharArray()).stream()
+                .anyMatch(c -> Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN);
     }
 
     public static boolean pinyinIsUnambiguous(String name){
@@ -218,6 +214,7 @@ public class Main {
         return simpBuilder.toString();
     }
 
+    //TODO: merge ambiguous and unambiguous?
     public static String simpToTradUnambiguous(String simpWord){
         StringBuilder tradBuilder = new StringBuilder();
         for (char c : simpWord.toCharArray()) {
@@ -243,31 +240,31 @@ public class Main {
 
     public static String tradToSimp(String tradWord) {
         List<Word> words = new ArrayList<Word>();
-        String acc = "";
+        StringBuilder acc = new StringBuilder();
         for (char c : tradWord.toCharArray()) {
             //TODO: add anything that isn't HAN straight to acc?
             words.add(Extract.getWordFromChinese(c));
         }
         for (Word word : words) {
-            acc = acc + word.getSimplifiedChinese();
+            acc.append(word.getSimplifiedChinese());
         }
-        return acc;
+        return acc.toString();
     }
 
     public static String simpToTrad(String simpWord) {
         List<Word> words = new ArrayList<Word>();
-        String acc = "";
+        StringBuilder acc = new StringBuilder();
         for (char c : simpWord.toCharArray()) {
             System.out.print(c + ":");
             words.add(Extract.getWordFromChinese(c));
         }
         for (Word word : words) {
-            acc = acc + word.getTraditionalChinese();
+            acc.append(word.getTraditionalChinese());
         }
-        return acc;
+        return acc.toString();
     }
 
-    //TODO spotted a possible bug in tis actual data - see星震学, zh-hant loks simplified in our data but trad in wikidata
+    //TODO spotted a possible bug in tis actual data - see星震学, zh-hant looks simplified in our data but trad in wikidata
 
     public static String getTraditional(String[] segments) {
         if (isTrad(segments[ZH_HANT]) && !segments[ZH_HANT].isEmpty()) {
@@ -290,29 +287,19 @@ public class Main {
         }
     }
 
-    // TODO: think about streams
     // TODO: move elsewhere?
     public static boolean isSimp(String name) {
-        for (char c : name.toCharArray()) {
-            if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN &&
-                    Extract.getWordFromSimplifiedChinese(c) == null){
-                return false;
-            }
-        }
-        return true;
+        return Utils.charArrayToCharacterList(name.toCharArray()).stream().anyMatch(c ->
+                Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN &&
+                        Extract.getWordFromSimplifiedChinese(c) == null);
     }
 
     public static boolean isTrad(String name) {
-        for (char c : name.toCharArray()) {
-            if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN &&
-                    Extract.getWordFromTraditionalChinese(c) == null){
-                return false;
-            }
-        }
-        return true;
+        return Utils.charArrayToCharacterList(name.toCharArray()).stream().anyMatch(c ->
+                        Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN &&
+                    Extract.getWordFromTraditionalChinese(c) == null);
     }
 
-    // TODO: not sure description hasn't stopped working
     public static String getNameAndDescription(String[] segments) {
         return segments[ENGLISH] + ((segments.length > 9 && !segments[DESCRIPTION].isEmpty()) ? ", " + segments[DESCRIPTION] : "");
     }
