@@ -7,7 +7,8 @@ import java.util.List;
 public class Main {
     private enum OutputFormat {
         CEDICT,
-        PLECO
+        PLECO,
+        ALL_DATA,
     }
 
     private static final boolean INCLUDE_HK_AND_MO = false;
@@ -55,6 +56,7 @@ public class Main {
                     outputFormat = switch (format) {
                         case "pleco" -> OutputFormat.PLECO;
                         case "cedict" -> OutputFormat.CEDICT;
+                        case "all_data" -> OutputFormat.ALL_DATA;
                         default -> throw new IllegalArgumentException("Unrecognised output format: " + format);
                     };
                 }
@@ -83,6 +85,11 @@ public class Main {
                             + getTraditional(segments) + "]\t"
                             + getPinyin(segments) + "\t"
                             + getNameAndDescription(segments));
+                } else if (outputFormat == OutputFormat.ALL_DATA) {
+                    // The effect of doing this is that we can filter out entries we don't want,
+                    // which will be useful in the curation script (and can run it back through here if necessary to
+                    // re-generate the other formats
+                    System.out.println(String.join("\t", segments));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
