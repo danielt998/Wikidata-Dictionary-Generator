@@ -3,6 +3,7 @@ package src.main.java;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,8 +34,8 @@ public class Extract {
                 word.setPinyinWithTones(rem[1].replaceAll("[\\[\\]]", "").toLowerCase());
 
                 String[] remRem = rem[0].split(" ");
-                word.setTraditionalChinese(remRem[0]);
-                word.setSimplifiedChinese(remRem[1]);
+                word.setTraditionalChinese(Normalizer.normalize(remRem[0], Normalizer.Form.NFC));
+                word.setSimplifiedChinese(Normalizer.normalize(remRem[1], Normalizer.Form.NFC));
 
                 simplifiedMapping.computeIfAbsent(word.getSimplifiedChinese(), k -> new ArrayList<>());
                 traditionalMapping.computeIfAbsent(word.getTraditionalChinese(), k -> new ArrayList<>());
@@ -65,10 +66,10 @@ public class Extract {
     }
 
     public static Word getWordFromTraditionalChinese(String chineseWord) {
-        if (traditionalMapping.get(chineseWord) == null) {
+        if (traditionalMapping.get(Normalizer.normalize(chineseWord, Normalizer.Form.NFC)) == null) {
             return null;
         }
-        return traditionalMapping.get(chineseWord).getFirst();
+        return traditionalMapping.get(Normalizer.normalize(chineseWord, Normalizer.Form.NFC)).getFirst();
     }
 
     public static Word getWordFromSimplifiedChinese(char c) {
@@ -84,11 +85,11 @@ public class Extract {
     }
 
     public static List<Word> getWordsFromTraditionalChinese(String chineseWord) {
-        return traditionalMapping.get(chineseWord);
+        return traditionalMapping.get(Normalizer.normalize(chineseWord, Normalizer.Form.NFC));
     }
 
     public static List<Word> getWordsFromSimplifiedChinese(String chineseWord) {
-        return simplifiedMapping.get(chineseWord);
+        return simplifiedMapping.get(Normalizer.normalize(chineseWord, Normalizer.Form.NFC));
     }
 
     public static List<Word> getWordsFromChinese(char c) {
@@ -108,9 +109,9 @@ public class Extract {
     }
 
     public static Word getWordFromSimplifiedChinese(String chineseWord) {
-        if (simplifiedMapping.get(chineseWord) == null) {
+        if (simplifiedMapping.get(Normalizer.normalize(chineseWord, Normalizer.Form.NFC)) == null) {
             return null;
         }
-        return simplifiedMapping.get(chineseWord).getFirst();
+        return simplifiedMapping.get(Normalizer.normalize(chineseWord, Normalizer.Form.NFC)).getFirst();
     }
 }

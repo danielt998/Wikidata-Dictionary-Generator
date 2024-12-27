@@ -1,5 +1,6 @@
 package src.main.java;
 
+import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.List;
 
@@ -64,11 +65,15 @@ public class Main {
         List<String> lines = FileUtils.fileToStringArray(INPUT_FILE);
         for (String line : lines) {
             String[] segments = line.split("\t", -1);
+            for (int i = 0; i < segments.length; i++) {
+                segments[i] = Normalizer.normalize(segments[i], Normalizer.Form.NFC);
+            }
 
             try {
                 if (ignoreRow(segments)) {
                     continue;
                 }
+
                 if (outputFormat == OutputFormat.CEDICT) {
                     System.out.println(getTraditional(segments) + " " + getSimplified(segments)
                             + " [" + getPinyin(segments) + "]"
@@ -108,6 +113,9 @@ public class Main {
             return true;
         }
         if (IGNORE_ENTRIES_WITH_NO_EN_LABEL && segments[ENGLISH].isEmpty()) {
+            return true;
+        }
+        if (!HanUtils.tradAndSimpMatch(getTraditional(segments), getSimplified(segments))) {
             return true;
         }
 

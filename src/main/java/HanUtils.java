@@ -1,9 +1,44 @@
 package src.main.java;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 
 public class HanUtils {
+    public static boolean tradAndSimpMatch(String trad, String simp) {
+        if (Normalizer.normalize(trad, Normalizer.Form.NFC).length()
+                != Normalizer.normalize(simp, Normalizer.Form.NFC).length()) return false;
+        for (int i = 0; i < trad.length(); i++) {
+            if (Character.UnicodeScript.of(trad.charAt(i)) == Character.UnicodeScript.HAN &&
+                    Character.UnicodeScript.of(simp.charAt(i)) == Character.UnicodeScript.HAN) {
+                if (!tradAndSimpMatch(trad.charAt(i), simp.charAt(i))) {
+                    return false;
+                } else {
+                    continue;
+                }
+            }
+
+            if (trad.charAt(i) != simp.charAt(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean tradAndSimpMatch(char tradChar, char simpChar) {
+        try {
+            return Extract.getWordsFromTraditionalChinese(tradChar).stream()
+                    .anyMatch(word -> normalisedStringEquals("" + simpChar, word.getSimplifiedChinese()));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static boolean normalisedStringEquals(String a, String b) {
+        return Normalizer.normalize(a, Normalizer.Form.NFC)
+                .equals(Normalizer.normalize(b, Normalizer.Form.NFC));
+    }
+
     public static boolean containsHan(String string) {
         return Utils.charArrayToCharacterList(string.toCharArray()).stream()
                 .anyMatch(c -> Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN);
@@ -14,7 +49,7 @@ public class HanUtils {
             if (Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN) {
                 String firstPinyin = Extract.getWordsFromChinese(c).getFirst().getPinyinWithTones().toLowerCase();
                 if (Extract.getWordsFromChinese(c).stream()
-                        .anyMatch(character -> !character.getPinyinWithTones().toLowerCase().equals(firstPinyin))) {
+                        .anyMatch(character -> !normalisedStringEquals(character.getPinyinWithTones().toLowerCase(), firstPinyin))) {
                     return false;
                 }
             }
@@ -54,7 +89,7 @@ public class HanUtils {
                 }
                 String firstMatchSimp = matches.getFirst().getSimplifiedChinese();
                 for (Word word : matches) {
-                    if (!word.getSimplifiedChinese().equals(firstMatchSimp)){
+                    if (!normalisedStringEquals(word.getSimplifiedChinese(), firstMatchSimp)){
                         return "";// TODO: find a better way to fail
                     }
                 }
@@ -78,7 +113,7 @@ public class HanUtils {
                 }
                 String firstMatchTrad = matches.getFirst().getTraditionalChinese();
                 for (Word word : matches) {
-                    if (!word.getTraditionalChinese().equals(firstMatchTrad)){
+                    if (!normalisedStringEquals(word.getTraditionalChinese(), firstMatchTrad)){
                         return "";// TODO: find a better way to fail
                     }
                 }
