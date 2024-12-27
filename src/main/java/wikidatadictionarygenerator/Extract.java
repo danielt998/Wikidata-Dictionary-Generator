@@ -1,4 +1,5 @@
-package src.main.java;
+package wikidatadictionarygenerator;
+
 
 import java.io.BufferedReader;
 import java.io.File;
