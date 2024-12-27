@@ -13,8 +13,6 @@ public class Main {
 
     private static final boolean INCLUDE_HK_AND_MO = false;
     private static final boolean UNAMBIGUOUS_PINYIN_ONLY = true;
-    // TODO: Add a check that the trad is equivalent to the simp for transliteration purposes (also how does this play with different romanisations?)
-    // also that means multiple combinations to check etc..
     private static final boolean AUTO_CONVERT_TRAD_TO_SIMP_WHEN_AMBIGUOUS = false;
     private static final boolean AUTO_CONVERT_SIMP_TO_TRAD_WHEN_AMBIGUOUS = false;
     private static final boolean SIMP_REQUIRED = true; //for these two need to consider what to put in other field if empty
