@@ -8,7 +8,7 @@ import com.ibm.icu.text.Transliterator;
 
 public class HanUtils {
     // ICU seems much slower than using CC-CEDICT with a map:(
-    public static final boolean USE_ICU_FOR_TRANSLITERATION = true;
+    public static final boolean USE_ICU_FOR_TRANSLITERATION = false;
 
     public static boolean tradAndSimpMatch(String trad, String simp) {
         if (Normalizer.normalize(trad, Normalizer.Form.NFC).length()
@@ -67,8 +67,12 @@ public class HanUtils {
             return "";
         }
 
-        if (USE_ICU_FOR_TRANSLITERATION) {
-            Transliterator transliterator = Transliterator.getInstance("Han-Latin/Names");
+        if (USE_ICU_FOR_TRANSLITERATION || !pinyinIsUnambiguous(hanzi)) {
+            // frustratingly there's no easy answer as to whether to use the "Han-Latin/Names" transliterator or the other
+            // "Han-Latin" one - /Names is better for Chinese language people's names, but "Han-Latin" is better for
+            // almost everything else - e.g. po2 here is very unusual in any other context:
+            // https://github.com/unicode-org/cldr/blob/9bbbc7769d6824229c49817c143ca7afebb00a34/common/transforms/Han-Latin-Names.xml#L50
+            Transliterator transliterator = Transliterator.getInstance("Han-Latin");
             Transliterator pinyinToNumericPinyinTransliterator = Transliterator.getInstance("Latin-NumericPinyin");
             return pinyinToNumericPinyinTransliterator.transliterate(transliterator.transliterate(hanzi))
                     .replaceAll("ü", "u:");// doublle check that Pleco also wants this
