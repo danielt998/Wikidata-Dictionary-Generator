@@ -1,10 +1,15 @@
-package src.main.java;
+package wikidatadictionarygenerator;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ibm.icu.text.Transliterator;
+
 public class HanUtils {
+    // ICU seems much slower than using CC-CEDICT with a map:(
+    public static final boolean USE_ICU_FOR_TRANSLITERATION = false;
+
     public static boolean tradAndSimpMatch(String trad, String simp) {
         if (Normalizer.normalize(trad, Normalizer.Form.NFC).length()
                 != Normalizer.normalize(simp, Normalizer.Form.NFC).length()) return false;
@@ -62,20 +67,31 @@ public class HanUtils {
             return "";
         }
 
-        List<String> pinyinSegments = new ArrayList<>();
-        char[] chars = hanzi.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            if (Character.UnicodeScript.of(chars[i]) == Character.UnicodeScript.HAN) {
-                pinyinSegments.add(Extract.getWordFromChinese(chars[i]).getPinyinWithTones());
-            } else {
-                StringBuilder nonHanString = new StringBuilder("" + chars[i]);
-                while (i + 1 < chars.length && Character.UnicodeScript.of(chars[i + 1]) != Character.UnicodeScript.HAN) {
-                    nonHanString.append(chars[++i]);
+        if (USE_ICU_FOR_TRANSLITERATION || !pinyinIsUnambiguous(hanzi)) {
+            // frustratingly there's no easy answer as to whether to use the "Han-Latin/Names" transliterator or the other
+            // "Han-Latin" one - /Names is better for Chinese language people's names, but "Han-Latin" is better for
+            // almost everything else - e.g. po2 here is very unusual in any other context:
+            // https://github.com/unicode-org/cldr/blob/9bbbc7769d6824229c49817c143ca7afebb00a34/common/transforms/Han-Latin-Names.xml#L50
+            Transliterator transliterator = Transliterator.getInstance("Han-Latin");
+            Transliterator pinyinToNumericPinyinTransliterator = Transliterator.getInstance("Latin-NumericPinyin");
+            return pinyinToNumericPinyinTransliterator.transliterate(transliterator.transliterate(hanzi))
+                    .replaceAll("ü", "u:");// doublle check that Pleco also wants this
+        } else {
+            List<String> pinyinSegments = new ArrayList<>();
+            char[] chars = hanzi.toCharArray();
+            for (int i = 0; i < chars.length; i++) {
+                if (Character.UnicodeScript.of(chars[i]) == Character.UnicodeScript.HAN) {
+                    pinyinSegments.add(Extract.getWordFromChinese(chars[i]).getPinyinWithTones());
+                } else {
+                    StringBuilder nonHanString = new StringBuilder("" + chars[i]);
+                    while (i + 1 < chars.length && Character.UnicodeScript.of(chars[i + 1]) != Character.UnicodeScript.HAN) {
+                        nonHanString.append(chars[++i]);
+                    }
+                    pinyinSegments.add(nonHanString.toString());
                 }
-                pinyinSegments.add(nonHanString.toString());
             }
+            return String.join(" ", pinyinSegments);
         }
-        return String.join(" ", pinyinSegments);
     }
 
     public static String tradToSimpUnambiguous(String tradWord){

@@ -1,0 +1,20 @@
+plugins {
+    id 'application'
+    id 'java'
+}
+
+sourceCompatibility = 23
+
+repositories {
+    mavenCentral()
+}
+
+apply plugin: 'application'
+mainClassName = 'wikidatadictionarygenerator.Main'
+//
+//dependencies {
+//    api 'com.ibm.icu:icu4j:62.2'
+//}
+dependencies {
+    implementation 'com.ibm.icu:icu4j:76.1'
+}
