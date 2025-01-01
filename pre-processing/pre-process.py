@@ -1,62 +1,99 @@
 import json
 
+DELIMITER = '\t'
+# ideally stop doing this and use escaping - this is a little silly
+ALIAS_DELIMITER = 'ᚋ'  # random Ogham character
+LIST_DELIMITER = ','
+
+
 def getDesc(lang_code, dict):
-    if i == None:
+    if dict == None:
         return ''
-    descs = i.get('descriptions')
+    descs = dict.get('descriptions')
     if descs == None:
         return ''
-    lang=descs.get(lang_code)
+    lang = descs.get(lang_code)
     if lang == None:
         return ''
-    value=lang.get('value')
+    value = lang.get('value')
     if value == None:
         return ''
     return value
 
-def getLangString(lang_code, dict):
-    if i == None:
+
+def getAliases(lang_code, dict):
+    if dict == None:
         return ''
-    labels = i.get('labels')
+    aliases = dict.get('aliases')
+    if aliases == None:
+        return ''
+    aliases_for_lang = aliases.get(lang_code)
+    if aliases_for_lang == None or aliases_for_lang == []:
+        return ""
+    alias_string = ''
+    for alias in aliases_for_lang:
+        if alias == None:
+            continue
+        value = alias.get('value')
+        alias_string = alias_string + (ALIAS_DELIMITER if alias_string != '' else '') + value
+    return alias_string
+
+
+def getLangString(lang_code, dict):
+    if dict == None:
+        return ''
+    labels = dict.get('labels')
     if labels == None:
         return ''
-    lang=labels.get(lang_code)
+    lang = labels.get(lang_code)
     if lang == None:
         return ''
-    value=lang.get('value')
+    value = lang.get('value')
     if value == None:
         return ''
     return value
+
 
 def getCountry(dict):
     return getValuesFromPropertyID(dict, "P17")
 
+
 def getValueFromProperty(element):
     mainsnak = element.get('mainsnak')
-    if mainsnak == None:
+    if mainsnak is None:
         return ''
     datavalue = mainsnak.get('datavalue')
-    if datavalue == None:
+    if datavalue is None:
         return ''
     value = datavalue.get('value')
-    if value == None:
+    if value is None:
         return ''
-    itemId = value.get('id')
-    if itemId == None:
+    item_id = value.get('id')
+    if item_id is None:
         return ''
-    return itemId
+    return item_id
 
-LIST_DELIMITER=','
-#return as a list separated by LIST_DELIMITER
+
+
+
+# return as a list separated by LIST_DELIMITER
 def getRegions(dict):
-    return getValuesFromPropertyID(dict,'P131')
+    return getValuesFromPropertyID(dict, 'P131')
+
+
 def getTypes(dict):
-    return getValuesFromPropertyID(dict,'P31')
+    return getValuesFromPropertyID(dict, 'P31')
+
+
+def getID(dict):
+    return dict.get('id')
+
+
 def getValuesFromPropertyID(dict, propertyID):
     items = []
-    if i == None:
+    if dict == None:
         return ''
-    claimsList = i.get('claims')
+    claimsList = dict.get('claims')
     if claimsList == None:
         return ''
     values = claimsList.get(propertyID)
@@ -66,36 +103,41 @@ def getValuesFromPropertyID(dict, propertyID):
         items.append(getValueFromProperty(element))
     ListString = ""
     for index, item in enumerate(items):
-        if index==0:
-            ListString=item
+        if index == 0:
+            ListString = item
         else:
-            ListString = ListString+LIST_DELIMITER+item
+            ListString = ListString + LIST_DELIMITER + item
     return ListString
 
-DELIMITER='\t'
-FILE='/media/dtm/wikidata/wikidata-20171016-all.json'
-#FILE='/media/dtm/wikidata/first1000lines.json'
-count=0
-langs={'zh','zh-hans','zh-hant','zh-hk','zh-mo','zh-my','zh-sg','zh-tw'}
 
-#for i in json_lib:
+FILE='/Volumes/Seagate Expansion Drive/wikidata-20240101-all.json/wikidata-20240101-all.json'
+# FILE = '../resources/first_10000.json'
+
+count = 0
+langs = {'zh', 'zh-hans', 'zh-hant', 'zh-hk', 'zh-mo', 'zh-my', 'zh-sg', 'zh-tw', 'zh-cn'}
+
+# for i in json_lib:
 with open(FILE) as infile:
-    count=count+1
+    count = count + 1
     for line in infile:
         if line.startswith("[") or line.startswith("]"):
             continue
-        i=''
-        line=line.rstrip()
+        dict = ''
+        line = line.rstrip()
         if line.endswith(","):
-            i=json.loads(line[:-1])
+            dict = json.loads(line[:-1])
         else:
-            i=json.loads(line)#TODO:test this works on the last line...
-        if i == None:
+            dict = json.loads(line)  # TODO:test this works on the last line...
+        if dict == None:
             continue
-        str=''
+        str = ''
         for lang in langs:
-            str= str + getLangString(lang,i) + DELIMITER
-        if str.isspace():#this only applies while delimiter is a tab **change this**
+            str = str + getLangString(lang, dict) + DELIMITER + getAliases(lang, dict) + DELIMITER
+        if str.isspace():  # this only applies while delimiter is a tab **change this**
             continue
-        str=str+getLangString('en',i)+DELIMITER
-        print(str+getDesc('en',i)+DELIMITER+getTypes(line)+DELIMITER+getCountry(line)+DELIMITER+getRegions(line))
+        str = str + getLangString('en', dict) + DELIMITER
+        print(str + getDesc('en', dict) + DELIMITER
+              + getTypes(dict) + DELIMITER
+              + getID(dict) + DELIMITER
+              + getCountry(dict) + DELIMITER
+              + getRegions(dict))
