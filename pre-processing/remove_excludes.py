@@ -3,7 +3,7 @@ import sys
 orig_directory = sys.argv[1]
 
 excludeList = None
-with open('../resources/excludeList') as f:
+with open('resources/excludeList') as f:
     excludeList = f.readlines()
 excludeList = [element.split('#')[0] for element in excludeList]
 
