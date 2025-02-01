@@ -1,36 +1,34 @@
 import sys
-import string
+import re
 
-orig_directory=sys.argv[1]
+orig_directory = sys.argv[1]
+
+ZH_REGEX = re.compile(r'[\u4e00-\u9fff]+')
 
 excludeList = None
-with open('excludeList') as f:
+with open('resources/excludeList') as f:
     excludeList = f.readlines()
-#for s in excludeList:
-#    print("EXCLUDED:"+s)
-excludeList = [string.split(element,'#')[0] for element in excludeList]
-#all_types = []
+excludeList = [element.split('#')[0] for element in excludeList]
 
 the_list= open(orig_directory)
 for line in the_list:
-    types = string.split(line, '\t')
-    types_list = string.split(types[11], ',')
+    types = line.split('\t')
+    types_list = types[20].split(',')
     exclude = False
     for a_type in types_list:
-        #---------
-        #if a_type.strip() not in all_types:
-            #all_types.append(a_type.strip)
-        #----------
         for exclude_item in excludeList:
-            #exclude_item = string.split(exclude_item,'#')[0]
             if a_type.strip() == exclude_item.strip():
                 exclude = True
+
+    # ignore anything with no Han text
+    # I think this may miss stuff but only obscure characters?
+    contains_zh = False
+    for field in types:
+        if re.findall(ZH_REGEX, field):
+            contains_zh = True
+    if not contains_zh:
+        exclude = True
+
     if not exclude:
-        sys.stdout.write(line)#because newline is getting printed twice
+        sys.stdout.write(line)
         sys.stdout.flush()
-        #print(line)
-    
-
-
-#for tp in all_types:
-#    print(tp)

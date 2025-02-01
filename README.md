@@ -5,8 +5,6 @@ There is a two stage process for doing this as parsing the json dump takes ages 
 
 There is also a script to exclude certain types of Wikidata item but I didn't get too far with this as there are too many types of item that I'd like to exclude. Unfortunately that does mean that there are a whole load of entries that make no sense in a dictionary.
 
-I haven't updated the data for years (2018/2019)ish I think) - using a new version of the json dump would make a huge difference but I have yet to download it (130GB compressed and I don't even know uncompressed - probably in the Terabytes) and re-run.
-
 
 
 

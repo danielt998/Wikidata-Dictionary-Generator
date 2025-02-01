@@ -1,3 +1,4 @@
+python3 pre-processing/remove_excludes.py intermediate_data/intermediate.tsv > intermediate_data/intermediate_after_excluding_stuff.tsv
 gradle run --console=plain --quiet > output/output_cedict_format.txt
 gradle run --console=plain --quiet --args="-f pleco" > output/output_pleco_format.txt
 gradle run --console=plain --quiet --args="-f all_data" > output/all_data.tsv
